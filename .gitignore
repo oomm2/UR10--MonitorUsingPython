@@ -1,0 +1,11 @@
+# WorkBuddy AI workspace data (local memory, session state)
+.workbuddy-ai/
+
+# Vendored upstream repo metadata, kept locally for reference only.
+# Renamed from .git so that git tracks the vendor meshes as plain files.
+ur_monitor/vendor/Universal_Robots_ROS2_Description/.git.upstream-backup/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
