@@ -287,13 +287,19 @@ def prune_unused() -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("models", nargs="*", choices=sorted(MODELS.values()),
-                        help="models to regenerate; defaults to all")
+    valid = sorted(MODELS.values())
+    # Not using choices= here: Python 3.10's argparse validates the empty default
+    # of nargs="*" against the choice list and rejects it with "invalid choice: []".
+    parser.add_argument("models", nargs="*",
+                        help=f"models to regenerate; defaults to all ({', '.join(valid)})")
     args = parser.parse_args()
+    unknown = sorted(set(args.models) - set(valid))
+    if unknown:
+        parser.error(f"invalid choice: {', '.join(unknown)} (choose from {', '.join(valid)})")
     if not VENDOR.is_dir():
         print(f"error: vendored description not found at {VENDOR}", file=sys.stderr)
         return 1
-    selected = args.models or sorted(MODELS.values())
+    selected = args.models or valid
     for model in selected:
         path, copied, borrowed = build(model)
         note = f" (borrowed from UR10: {', '.join(borrowed)})" if borrowed else ""
