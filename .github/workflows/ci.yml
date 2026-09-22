@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python tests, lint and types
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ruff mypy
+
+      # The RTDE client is a git dependency. The tests never open a robot
+      # connection, so a missing package only exercises the "package missing"
+      # branch and must not fail the build.
+      - name: Install RTDE client (best effort)
+        continue-on-error: true
+        run: python -m pip install -r requirements.txt
+
+      - name: Initialize local configuration
+        run: cp config.example.json config.json
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Build robot models
+        run: python tools/build_models.py
+
+      - name: Lint
+        run: python -m ruff check .
+
+      - name: Type check
+        run: python -m mypy
+
+      - name: Smoke test
+        run: python tools/smoke_test.py
+
+  frontend:
+    name: Frontend unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Unit tests
+        run: node --test "tests/js/*.test.mjs"
