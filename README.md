@@ -1,5 +1,7 @@
 # UR10——MonitorUsingPython
 
+**English** | [廣東話](README.zh-HK.md) | [繁體中文](README.zh-Hant.md) | [简体中文](README.zh-Hans.md)
+
 Read-only UR10 RTDE telemetry monitor for Windows.
 
 Intended GitHub repository slug: `UR10--MonitorUsingPython`.
