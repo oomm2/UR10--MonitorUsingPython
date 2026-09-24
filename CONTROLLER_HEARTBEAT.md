@@ -1,5 +1,7 @@
 # Controller Heartbeat API
 
+**English** | [廣東話](CONTROLLER_HEARTBEAT.zh-HK.md) | [繁體中文](CONTROLLER_HEARTBEAT.zh-Hant.md) | [简体中文](CONTROLLER_HEARTBEAT.zh-Hans.md)
+
 ## Why it exists
 
 The Windows monitor uses RTDE **output-only** telemetry. RTDE can report robot state, but it does not tell this monitor which other computer is connected to the URSim controller. Windows cannot see the Mac's direct TCP connection to the VM because the monitor is not a proxy.

@@ -1,7 +1,7 @@
 # Public release preparation check
 
 Project display name: **UR10——MonitorUsingPython**  
-Intended repository slug: `UR10--MonitorUsingPython`
+Published at: https://github.com/oomm2/UR10--MonitorUsingPython
 
 ## Preparation completed
 
@@ -49,10 +49,13 @@ manifest itself. Never include the local configuration or future environment fil
 
 ## Remaining decisions and checks
 
-1. GitHub authentication is not available in the preparation session. Authenticate before repository creation or upload; neither was attempted here.
-2. The owner has not selected a license for original code. Public source without a license is not an open-source grant. Select one before claiming an open-source release, while retaining third-party license exceptions and notices.
-3. Run the frontend tests with Node.js 20 or newer. The prepared CI uses Node.js 22, but remote CI has not run.
+1. ~~GitHub authentication was not available in the preparation session.~~ Resolved: the repository is published and CI runs on every push.
+2. ~~The owner has not selected a license for original code.~~ Resolved: released under the MIT License (`LICENSE`); third-party components keep their own licenses in `THIRD_PARTY_NOTICES.md`.
+3. Frontend tests run in CI (Node 22) on every push. Run them locally with Node 20 or newer: `node --test "tests/js/*.test.mjs"`.
 4. Revalidate from a clean candidate-only checkout: copy `config.example.json` to ignored `config.json`, then run the documented checks. Review live screenshots, recordings and reports separately before sharing.
-5. Do not expose this monitor directly to the internet. Read endpoints and recording downloads are not authenticated; CORS does not authenticate non-browser clients. The monitor is not a robot safety device.
+5. Do not expose this monitor directly to the internet. Read endpoints and recording downloads are not authenticated; CORS does not authenticate non-browser clients. The monitor is not a robot safety device. See `SECURITY.md`.
+
+The dashboard screenshots in `docs/` were captured with synthetic demo telemetry so that no
+private network information is shown. Recompute `SHA256SUMS.txt` after any file change.
 
 No repository initialization, commits, pushes, uploads, authentication changes or external network requests were performed during preparation. Loopback HTTP was used only for local tests.

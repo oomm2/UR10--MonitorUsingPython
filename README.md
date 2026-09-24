@@ -2,13 +2,19 @@
 
 **English** | [廣東話](README.zh-HK.md) | [繁體中文](README.zh-Hant.md) | [简体中文](README.zh-Hans.md)
 
+[![CI](https://github.com/oomm2/UR10--MonitorUsingPython/actions/workflows/ci.yml/badge.svg)](https://github.com/oomm2/UR10--MonitorUsingPython/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+
 Read-only UR10 RTDE telemetry monitor for Windows.
 
-Intended GitHub repository slug: `UR10--MonitorUsingPython`.
 All `192.0.2.x` addresses below are documentation examples, not live deployment addresses.
 The Mac Vision program remains the only controller: this app uses an RTDE **output-only** recipe and never sends URScript, motion commands, or RTDE input registers.
 
 The design stays read-only on purpose — there is no input recipe, no URScript and no motion command anywhere in this repository.
+
+![UR10 Monitor dashboard](docs/dashboard.png)
+_Dashboard with live SSE telemetry, the UR10 digital twin and trend charts (synthetic demo data)._
 
 ## Architecture
 
@@ -310,9 +316,8 @@ both copies without changing geometry, units or coordinate axes. Upstream licens
 
 ## License and third-party notices
 
-No license grant has been selected for the original project code. Public availability is not an
-open-source license. The owner must select a license before claiming an open-source release.
-Third-party components retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+This project is released under the [MIT License](LICENSE). Third-party components retain
+their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Safety and deployment limitations
 

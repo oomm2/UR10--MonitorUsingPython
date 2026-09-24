@@ -2,13 +2,19 @@
 
 [English](README.md) | [廣東話](README.zh-HK.md) | [繁體中文](README.zh-Hant.md) | **简体中文**
 
+[![CI](https://github.com/oomm2/UR10--MonitorUsingPython/actions/workflows/ci.yml/badge.svg)](https://github.com/oomm2/UR10--MonitorUsingPython/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+
 适用于 Windows 的 UR10 RTDE 只读遥测监控器。
 
-GitHub 仓库名称：`UR10--MonitorUsingPython`。
 以下所有 `192.0.2.x` 地址仅为文档示例，并非实际部署地址。
 Mac Vision 程序仍然是唯一的控制器：本应用程序只使用 RTDE **纯输出** recipe，绝不发送 URScript、运动指令或 RTDE 输入寄存器。
 
 本项目刻意保持只读设计——整个仓库内没有任何输入 recipe、URScript 或运动指令。
+
+![UR10 Monitor dashboard](docs/dashboard.png)
+_仪表板：实时 SSE 遥测、UR10 数字孪生与趋势图（合成演示数据）。_
 
 ## 架构
 
@@ -266,7 +272,7 @@ curl.exe -X POST http://127.0.0.1:8080/api/recording/stop `
 
 - Windows 监控器局域网地址：`192.0.2.20`
 - Heartbeat 端点：`http://192.0.2.20:8080/api/control/heartbeat`
-- 集成指南：`CONTROLLER_HEARTBEAT.md`
+- 集成指南：`CONTROLLER_HEARTBEAT.zh-Hans.md`
 - 即用型 Mac 辅助程序：`mac_controller_heartbeat.py`
 - Heartbeat 密钥：被忽略的 `.env` 或进程环境中的 `UR_MONITOR_HEARTBEAT_TOKEN`——请勿 commit 或泄露。
 
@@ -282,7 +288,7 @@ curl.exe -X POST http://127.0.0.1:8080/api/recording/stop `
 
 ## 许可与第三方声明
 
-原始项目代码尚未选定许可证。公开可见不等于开源许可。所有者必须先选定许可证，才能称为开源发布。第三方组件保留其自身许可；见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+本项目以 [MIT License](LICENSE) 发布。第三方组件保留其自身许可；见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 安全与部署限制
 
