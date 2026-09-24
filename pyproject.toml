@@ -3,6 +3,8 @@ name = "ur-monitor"
 version = "3.1.0"
 description = "Read-only UR10 RTDE telemetry monitor for Windows"
 requires-python = ">=3.10"
+license = { text = "MIT" }
+classifiers = ["License :: OSI Approved :: MIT License"]
 
 [tool.ruff]
 line-length = 110

@@ -2,6 +2,7 @@
   "name": "ur-monitor-frontend",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "description": "Browser-side modules for the UR10 read-only monitor. Server-side Python lives in server.py.",
   "type": "module",
   "engines": {
