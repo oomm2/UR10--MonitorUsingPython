@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import URDFLoader from './vendor/urdf-loader/src/URDFLoader.js';
 import { prepareRobot, applyJointValues, JOINT_NAMES, decimateTrack } from './telemetry.js';
+import { getSharedI18n } from './i18n.js';
 
 const DEFAULT_CAMERA = { position: [1.9, 1.35, 2.0], target: [0, 0, 0.55] };
 const SCENE_BACKGROUNDS = { dark: 0x111827, light: 0xe5e7eb };
@@ -82,17 +83,19 @@ export function createRobotScene(element, status, log, { robotModel = 'UR10', ur
   let ringsVisible = false;
   let trailVisible = true;
 
+  const i18n = getSharedI18n();
+
   function refreshStatus() {
     if (failed) return;
     status.textContent = robot
-      ? `${currentModel} model loaded · ${live ? 'live pose' : 'no live telemetry; pose held'}`
-      : `Loading ${currentModel} model and meshes…`;
+      ? i18n.t(live ? 'scene_loaded_live' : 'scene_loaded_held', { model: currentModel })
+      : i18n.t('scene_loading_model', { model: currentModel });
   }
 
   const manager = new THREE.LoadingManager();
   manager.onError = () => {
     failed = true;
-    status.textContent = '3D asset load error — telemetry remains available';
+    status.textContent = i18n.t('scene_asset_error');
     log('A robot model asset could not be loaded', 'bad');
   };
   manager.onLoad = () => {

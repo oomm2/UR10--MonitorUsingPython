@@ -8,6 +8,10 @@ import {
 } from './telemetry.js';
 import { createReplay } from './replay.js';
 import { createThemeController } from './theme.js';
+import { getSharedI18n } from './i18n.js';
+
+const i18n = getSharedI18n();
+const t = (key, vars) => i18n.t(key, vars);
 
 const $ = (selector) => document.querySelector(selector);
 const jointRoot = $('#joints');
@@ -109,7 +113,7 @@ function updateJoints(values) {
     bar.style.width = `${display.width}%`;
     bar.classList.toggle('out-of-range', display.outOfRange);
     const range = `${(limit.lower * 180 / Math.PI).toFixed(0)}° to ${(limit.upper * 180 / Math.PI).toFixed(0)}°`;
-    row.title = `${display.outOfRange ? 'Outside' : 'Within'} nominal display range ${range}. ${limit.note || ''}`;
+    row.title = `${t(display.outOfRange ? 'joints_title_outside' : 'joints_title_within', { range })}. ${limit.note || ''}`;
   });
 }
 
@@ -127,12 +131,12 @@ async function loadJointLimits() {
     const unusual = jointLimits
       .filter((item) => Math.abs(item.upper) < Math.PI * 2 - 1e-6)
       .map((item) => item.label || item.id);
-    const parts = ['Bars show nominal ROS planning ranges.'];
-    if (unusual.length) parts.push(`Reduced range: ${unusual.join(', ')}.`);
-    parts.push('Amber = outside nominal range. Live values and 3D poses are never clamped.');
+    const parts = [t('joints_note_bars')];
+    if (unusual.length) parts.push(t('joints_note_reduced', { list: unusual.join(', ') }));
+    parts.push(t('joints_note_amber'));
     $('#joint-range-note').textContent = parts.join(' ');
   } catch (error) {
-    $('#joint-range-note').textContent = 'Range metadata unavailable; bars disabled. Numeric joint values remain available.';
+    $('#joint-range-note').textContent = t('joints_note_fallback');
     log(`Joint range metadata unavailable: ${error.message}`, 'warn');
   }
 }
@@ -165,11 +169,11 @@ export function modeSeverity(code) {
 
 function updateControl(control) {
   badge($('#control-status'), control.active ? 'ok' : 'waiting',
-    control.active ? 'Active' : (control.reported ? 'Stale' : 'Waiting'));
-  $('#control-ip').textContent = control.reported ? control.ip || '—' : 'Unknown';
+    control.active ? t('pill_active') : (control.reported ? t('pill_stale') : t('pill_waiting')));
+  $('#control-ip').textContent = control.reported ? control.ip || '—' : t('value_unknown');
   $('#control-name').textContent = control.reported ? control.name || '—' : '—';
   $('#control-state').textContent = control.active
-    ? control.state || 'controlling' : (control.reported ? 'Heartbeat stale' : 'Unknown');
+    ? control.state || 'controlling' : (control.reported ? t('value_stale_state') : t('value_unknown'));
   $('#control-protocol').textContent = control.reported ? control.protocol || '—' : '—';
   $('#control-age').textContent = ageText(control.age_seconds);
   $('#control-robot').textContent = control.reported ? control.robot_ip || '—' : '—';
@@ -207,10 +211,10 @@ function updateLatency(latency) {
   if (stats?.mode === 'clock_sync') {
     const drift = stats.offset_drift_seconds;
     $('#latency-note').textContent = Number.isFinite(drift)
-      ? `Clock-synced mode. Last offset vs Mac clock: ${stats.offset_seconds}s (drift ${drift}s).`
-      : 'Clock-synced mode: heartbeat timestamps are compared directly against this host clock.';
+      ? t('lat_note_clock_drift', { offset: stats.offset_seconds, drift })
+      : t('lat_note_clock');
   } else {
-    $('#latency-note').textContent = 'Monotonic mode measures arrival delay without needing clock synchronisation with the Mac.';
+    $('#latency-note').textContent = t('lat_note_monotonic');
   }
 }
 
@@ -230,8 +234,8 @@ function updateDiagnostics(payload) {
   $('#diag-sample-age').textContent = Number.isFinite(lastUpdate)
     ? ageText(Date.now() / 1000 - lastUpdate) : '—';
   $('#diag-reason').textContent = diagnostics.last_disconnect_reason
-    ? `Last disconnect: ${diagnostics.last_disconnect_reason}`
-    : 'No disconnect recorded in this session.';
+    ? t('diag_disconnect', { reason: diagnostics.last_disconnect_reason })
+    : t('diag_no_disconnect');
 }
 
 function flagJump(jumps) {
@@ -240,8 +244,10 @@ function flagJump(jumps) {
   const worst = Math.max(...jumps);
   const worstIndex = jumps.indexOf(worst) + 1;
   jumpAlert.hidden = false;
-  jumpAlert.textContent = `⚠ J${worstIndex} jumped ${(worst * 180 / Math.PI).toFixed(1)}° in one sample `
-    + `(threshold ${JUMP_THRESHOLD_DEG}°, ${jumpCount} total). Possible RTDE packet loss.`;
+  jumpAlert.textContent = t('jump_alert', {
+    j: worstIndex, deg: (worst * 180 / Math.PI).toFixed(1),
+    threshold: JUMP_THRESHOLD_DEG, count: jumpCount,
+  });
   JOINT_NAMES.forEach((_, index) => {
     if (jumps[index] * 180 / Math.PI > JUMP_THRESHOLD_DEG) $(`#bar-${index}`).classList.add('jump');
   });
@@ -264,7 +270,7 @@ function renderState(state) {
   if (lastPollError) log(streamMode ? 'Monitor data resumed' : 'Monitor API recovered');
   lastPollError = '';
   badge($('#connection'), rendered.connected ? 'ok' : 'waiting',
-    rendered.connected ? 'Connected' : 'Disconnected');
+    rendered.connected ? t('pill_connected') : t('pill_disconnected'));
   if (rendered.connected !== lastConnection) {
     log(rendered.connected ? 'RTDE connected' : 'RTDE disconnected', rendered.connected ? '' : 'bad');
     lastConnection = rendered.connected;
@@ -273,8 +279,9 @@ function renderState(state) {
   $('#ip').textContent = rendered.robot_ip || '—';
   $('#monitor-ip').textContent = rendered.monitor_ip || '—';
   $('#age').textContent = rendered.last_update === null ? '—' : ageText(Date.now() / 1000 - rendered.last_update);
-  const transportText = frozen ? `Frozen · ${streamMode ? 'SSE' : 'polling'}`
-    : (streamMode ? 'SSE stream' : 'HTTP polling');
+  const transportText = frozen
+    ? `${t('pill_frozen')} · ${streamMode ? 'SSE' : 'HTTP'}`
+    : (streamMode ? t('transport_sse') : t('transport_poll'));
   $('#transport').querySelector('span:last-child').textContent = transportText;
   $('#transport').classList.remove('waiting', 'ok', 'error');
   $('#transport').classList.add(streamMode ? 'ok' : 'waiting');
@@ -356,7 +363,7 @@ function svgPolyline(points, stroke, width = 1.6) {
 
 function chartPlaceholder(svg, width, height) {
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.innerHTML = `<text x="50%" y="50%" fill="var(--muted)" font-size="11" text-anchor="middle">Waiting for telemetry…</text>`;
+  svg.innerHTML = `<text x="50%" y="50%" fill="var(--muted)" font-size="11" text-anchor="middle">${t('chart_waiting')}</text>`;
 }
 
 function drawJointChart() {
@@ -439,7 +446,7 @@ function applyTrail(points) {
       }
     },
     onEnd: () => {
-      $('#replay-play').textContent = 'Play';
+      $('#replay-play').textContent = t('btn_play');
       log('Trajectory replay finished');
     },
   });
@@ -447,9 +454,12 @@ function applyTrail(points) {
 }
 
 function updateReplayReadout(index, total) {
-  replayReadout.textContent = `${index} / ${Math.max(0, total - 1)} points`;
+  const shown = Math.max(0, total - 1);
+  replayReadout.textContent = t('replay_points', { index, total: shown });
   if (total > 1) {
-    replayReadout.title = `Path length ${trackLength(trajectoryTrack(replayPoints)).toFixed(3)} m`;
+    replayReadout.title = t('replay_path_title', {
+      length: trackLength(trajectoryTrack(replayPoints)).toFixed(3),
+    });
   }
 }
 
@@ -533,7 +543,7 @@ async function refreshRecordingList() {
       const previous = select.value;
       select.innerHTML = '';
       if (!names.length) {
-        select.append(new Option('no recordings', ''));
+        select.append(new Option(t('option_no_recordings'), ''));
       }
       names.forEach((name) => select.append(new Option(name, name)));
       if (names[offset]) select.value = names[offset];
@@ -665,7 +675,7 @@ function toggleReplay() {
     return;
   }
   const playing = replay.toggle();
-  $('#replay-play').textContent = playing ? 'Pause' : 'Play';
+  $('#replay-play').textContent = playing ? t('btn_pause') : t('btn_play');
 }
 
 function applyTheme(theme) {
@@ -679,16 +689,23 @@ $('#theme-toggle').addEventListener('click', () => {
   applyTheme(themeController.toggle());
   log(`Theme: ${themeController.theme}`);
 });
+const languageSelect = $('#language-select');
+languageSelect.value = i18n.language;
+languageSelect.addEventListener('change', () => i18n.set(languageSelect.value));
+i18n.subscribe(() => {
+  if (lastRenderedState) renderState(lastRenderedState);
+});
+i18n.init();
 $('#help-toggle').addEventListener('click', () => { $('#shortcut-card').hidden = !$('#shortcut-card').hidden; });
 $('#snapshot-button').addEventListener('click', exportSnapshot);
 trailToggle.addEventListener('click', toggleTrail);
 $('#rings-toggle').addEventListener('click', toggleRings);
 $('#replay-play').addEventListener('click', toggleReplay);
-$('#replay-reset').addEventListener('click', () => { replay?.reset(); $('#replay-play').textContent = 'Play'; });
+$('#replay-reset').addEventListener('click', () => { replay?.reset(); $('#replay-play').textContent = t('btn_play'); });
 replayScrub.addEventListener('input', () => {
   if (!replay) return;
   replay.pause();
-  $('#replay-play').textContent = 'Play';
+  $('#replay-play').textContent = t('btn_play');
   replay.seek(Number(replayScrub.value) / 1000);
 });
 replaySpeed.addEventListener('change', () => replay?.setSpeed(Number(replaySpeed.value)));
@@ -705,10 +722,10 @@ const poller = createPoller({
 
 function renderPollingError(error) {
   const labels = {
-    network: 'Monitor offline', timeout: 'Monitor timeout',
-    http: 'Monitor HTTP error', response: 'Invalid monitor data',
+    network: t('monitor_offline'), timeout: t('monitor_timeout'),
+    http: t('monitor_http'), response: t('monitor_invalid'),
   };
-  badge($('#connection'), 'error', labels[error.kind] || 'Dashboard error');
+  badge($('#connection'), 'error', labels[error.kind] || t('dashboard_error'));
   badge($('#control-status'), 'waiting', 'Unknown');
   ['#control-ip', '#control-name', '#control-state', '#control-protocol', '#control-age', '#control-robot',
     '#vision-fps', '#vision-confidence', '#vision-gesture', '#vision-dropped', '#vision-inference', '#control-count']
@@ -765,7 +782,7 @@ sceneReady.then(() => import('./scene.js')).then(({ createRobotScene }) => {
   applyTheme(themeController.theme);
   refreshTrajectory({ announce: false });
 }).catch((error) => {
-  sceneStatus.textContent = '3D unavailable — telemetry remains available';
+  sceneStatus.textContent = t('scene_unavailable');
   log(`3D view unavailable: ${error.message}`, 'warn');
 });
 

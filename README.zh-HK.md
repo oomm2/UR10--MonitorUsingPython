@@ -120,6 +120,7 @@ Digital Twin 用 Universal Robots 官方 UR10 視覺 DAE mesh 同扁平化 URDF�
 - **延遲。** 當 Mac 控制端嘅 heartbeat 帶 `sent_at` 欄位時，Link Diagnostics 卡會顯示傳送去接收嘅延遲。詳見下文_延遲_。
 - **基線比較。** 完成咗嘅錄製可以載入做基線；圖表會喺同一條時間軸上面畫埋基線同即時曲線。
 - **主題。** 開關喺深色同淺色配色之間切換，選擇會記喺 `localStorage`。
+- **語言。** header 個選擇器可以將成個 dashboard 切換做 English、廣東話、繁體中文或者简体中文，選擇會記喺 `localStorage`。Events log 保持英文。
 - **快照／報告。** `C` 匯出而家個畫面。詳見下文_快照與報告_。
 - **說明。** `?` 開關鍵盤快捷鍵卡；所有快捷鍵都列晒喺入面。
 

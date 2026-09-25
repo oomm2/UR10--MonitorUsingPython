@@ -123,6 +123,7 @@ The Digital Twin uses the official Universal Robots UR10 visual DAE meshes and a
 - **Latency.** The Link Diagnostics card shows send-to-receive latency once the Mac controller heartbeats include a `sent_at` field. See _Latency_ below.
 - **Baseline comparison.** A finished recording can be loaded as a baseline; the chart then draws the baseline and live curves on a shared time axis.
 - **Theme.** The toggle switches between the dark and light palettes and remembers the choice in `localStorage`.
+- **Language.** The header selector switches the whole dashboard between English, 廣東話, 繁體中文 and 简体中文; the choice is remembered in `localStorage`. Event-log lines stay in English.
 - **Snapshot / report.** `C` exports the current view. See _Screenshot and report_ below.
 - **Help.** `?` opens the keyboard-shortcut card; every shortcut is listed there.
 
