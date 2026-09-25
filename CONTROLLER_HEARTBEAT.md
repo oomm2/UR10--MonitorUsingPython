@@ -72,6 +72,37 @@ locked out by another client's failures.
 
 The endpoint is plain HTTP for this private LAN setup. Do not expose it to an untrusted network; use a protected network or add transport security before doing so.
 
+## Python integration (embed in the Vision app)
+
+`mac_controller_heartbeat.py` is also an importable module, so the heartbeat can follow the
+Vision controller's real lifecycle instead of running as a separate script. Copy the file next
+to your Vision app (standard library only) and:
+
+```python
+import mac_controller_heartbeat as hb
+
+heartbeat = hb.HeartbeatClient(
+    monitor_url="http://192.0.2.20:8080",
+    name="Mac Vision controller",
+    protocol="Vision / RTDE",
+    robot_ip="192.0.2.10",
+    latency_clock="unix",   # see the latency note below
+)
+heartbeat.start()                                   # when the Vision controller starts
+heartbeat.update(state="tracking", details="hand detected")
+heartbeat.update(state="idle")
+heartbeat.stop()                                    # when the Vision controller stops
+```
+
+The token is read from `UR_MONITOR_HEARTBEAT_TOKEN` (or pass `token=` explicitly). Send
+failures never raise into your control loop: they surface through the optional `on_error`
+callback and the `last_error` property.
+
+Latency note: `latency_clock="monotonic"` (default) matches the monitor's default
+`latency_mode` and is only meaningful when the sender runs on the monitor host. For a real
+Mac → Windows setup, set `"latency_mode": "clock_sync"` in the monitor's `config.json`, keep
+both machines NTP-synchronised, and use `latency_clock="unix"`.
+
 ## Swift / Vision integration
 
 Run this on a timer after the Vision controller has started and stop the timer when it stops. Keep the token in runtime configuration, not source control.

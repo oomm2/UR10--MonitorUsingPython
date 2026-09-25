@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import time
 import unittest
 import urllib.error
 from unittest.mock import Mock, patch
@@ -94,6 +95,100 @@ class HeartbeatTests(unittest.TestCase):
     def test_ctrl_c_is_clean(self):
         with patch.object(helper, 'send_heartbeat', side_effect=KeyboardInterrupt), patch('sys.stderr', new_callable=io.StringIO):
             self.assertEqual(helper.run(self.args()), 0)
+
+
+class HeartbeatClientTests(unittest.TestCase):
+    def make_client(self, **kwargs):
+        kwargs.setdefault("token", "test-token")
+        kwargs.setdefault("interval", 0.05)
+        return helper.HeartbeatClient(**kwargs)
+
+    @staticmethod
+    def ok_response():
+        response = Mock(status=200)
+        response.read.return_value = b'{"ok":true,"observed_ip":"127.0.0.1"}'
+        return response
+
+    def wait_for(self, condition, timeout=5.0):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if condition():
+                return True
+            time.sleep(0.01)
+        return False
+
+    @patch.object(helper.urllib.request, "urlopen")
+    def test_embedded_lifecycle_payload_and_updates(self, urlopen):
+        urlopen.return_value = self.ok_response()
+        client = self.make_client(latency_clock="unix", name="Vision", robot_ip="192.0.2.10")
+        client.start()
+        self.assertTrue(self.wait_for(lambda: urlopen.call_count >= 1))
+        client.update(state="tracking", details="hand detected")
+        self.assertTrue(self.wait_for(lambda: any(
+            json.loads(call.args[0].data).get("state") == "tracking"
+            for call in urlopen.call_args_list
+        )))
+        client.stop()
+        self.assertFalse(client.running)
+
+        first = json.loads(urlopen.call_args_list[0].args[0].data)
+        self.assertEqual(first["name"], "Vision")
+        self.assertEqual(first["robot_ip"], "192.0.2.10")
+        self.assertEqual(first["state"], "controlling")
+        self.assertIsInstance(first["sent_at"], float)
+        self.assertIs(first["clock_sync"], True)
+        request = urlopen.call_args_list[0].args[0]
+        self.assertEqual(request.get_header("X-heartbeat-token"), "test-token")
+        self.assertEqual(urlopen.call_args.kwargs["timeout"], 2.0)
+
+    @patch.object(helper.urllib.request, "urlopen")
+    def test_monotonic_default_has_no_clock_sync_flag(self, urlopen):
+        urlopen.return_value = self.ok_response()
+        client = self.make_client()
+        client.send_once()
+        payload = json.loads(urlopen.call_args.args[0].data)
+        self.assertIsInstance(payload["sent_at"], float)
+        self.assertNotIn("clock_sync", payload)
+
+    def test_client_validation(self):
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(ValueError):
+                helper.HeartbeatClient(token=None)
+        for kwargs in [{"interval": 0}, {"interval": float("nan")}, {"timeout": -1},
+                       {"latency_clock": "bogus"}]:
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                self.make_client(**kwargs)
+
+    @patch.object(helper.urllib.request, "urlopen")
+    def test_failures_reach_on_error_without_raising(self, urlopen):
+        urlopen.side_effect = helper.urllib.error.URLError("monitor down")
+        errors = []
+        client = self.make_client(on_error=errors.append)
+        client.start()
+        self.assertTrue(self.wait_for(lambda: bool(errors)))
+        client.stop()
+        self.assertIn("could not reach monitor", errors[0])
+        self.assertIn("could not reach monitor", client.last_error or "")
+
+    @patch.object(helper.urllib.request, "urlopen")
+    def test_stop_pauses_sending(self, urlopen):
+        urlopen.return_value = self.ok_response()
+        client = self.make_client()
+        client.start()
+        self.assertTrue(self.wait_for(lambda: urlopen.call_count >= 1))
+        client.stop()
+        count = urlopen.call_count
+        time.sleep(0.2)
+        self.assertEqual(urlopen.call_count, count)
+
+    def test_token_redaction_in_client_errors(self):
+        error = urllib.error.HTTPError("http://localhost", 401, "Unauthorized", {},
+                                      io.BytesIO(b'{"error":"bad test-token"}'))
+        with patch.object(helper.urllib.request, "urlopen", side_effect=error):
+            client = self.make_client()
+            with self.assertRaisesRegex(helper.HeartbeatError, "bad \\[redacted\\]"):
+                client.send_once()
+            self.assertIn("[redacted]", client.last_error or "")
 
 
 if __name__ == '__main__':

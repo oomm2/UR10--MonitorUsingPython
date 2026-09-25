@@ -69,6 +69,30 @@ python3 mac_controller_heartbeat.py \
 
 此端點在此私人區網設定中為純 HTTP。請勿暴露於不受信任的網路；若有必要，請使用受保護的網路或先加上傳輸層加密。
 
+## Python 整合（內嵌於 Vision 應用程式）
+
+`mac_controller_heartbeat.py` 同時是一個可 import 的模組，heartbeat 可以跟隨 Vision 控制器的真實生命週期運作，不需另開腳本。將檔案複製到你的 Vision 應用程式旁（僅使用標準庫），然後：
+
+```python
+import mac_controller_heartbeat as hb
+
+heartbeat = hb.HeartbeatClient(
+    monitor_url="http://192.0.2.20:8080",
+    name="Mac Vision controller",
+    protocol="Vision / RTDE",
+    robot_ip="192.0.2.10",
+    latency_clock="unix",   # 見下方延遲說明
+)
+heartbeat.start()                                   # Vision 控制器啟動時
+heartbeat.update(state="tracking", details="hand detected")
+heartbeat.update(state="idle")
+heartbeat.stop()                                    # Vision 控制器停止時
+```
+
+token 會從 `UR_MONITOR_HEARTBEAT_TOKEN` 讀取（或直接傳入 `token=`）。發送失敗絕不會拋入你的控制流程：只會透過選配的 `on_error` 回呼與 `last_error` 屬性回報。
+
+延遲說明：`latency_clock="monotonic"`（預設）對應監控器預設的 `latency_mode`，只有在傳送端與監控器同一部主機時才有意義。真實 Mac → Windows 設定：在監控器的 `config.json` 設定 `"latency_mode": "clock_sync"`，兩台機器保持 NTP 對時，並使用 `latency_clock="unix"`。
+
 ## Swift / Vision 整合
 
 在 Vision 控制器啟動後以計時器執行此程式碼，控制器停止時停止計時器。token 請放在執行時設定中，不要放進原始碼控制。
