@@ -74,13 +74,16 @@ test('translate substitutes {vars} and leaves unknown placeholders intact', () =
   );
 });
 
-test('stored language round-trips and rejects unknown values', () => {
+test('stored language round-trips and invalid stored values are ignored at read time', () => {
   const storage = fakeStorage();
   assert.equal(readStoredLanguage(storage), null);
   storeLanguage(storage, 'zh-Hant');
   assert.equal(readStoredLanguage(storage), 'zh-Hant');
+  // storeLanguage persists raw values (matching theme.js); the validation
+  // happens on read, so a corrupted value degrades to the detected default
+  // instead of breaking the dashboard.
   storeLanguage(storage, 'klingon');
-  assert.equal(readStoredLanguage(storage), 'zh-Hant');
+  assert.equal(readStoredLanguage(storage), null);
 });
 
 test('createI18n applies attributes, persists changes and notifies subscribers', () => {
