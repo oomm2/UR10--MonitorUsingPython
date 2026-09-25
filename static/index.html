@@ -56,6 +56,10 @@
     #scene-status { position: absolute; left: 16px; top: 14px; z-index: 2; color: var(--hint); font-size: 12px; pointer-events: none; }
     .scene-hint { position: absolute; right: 16px; bottom: 12px; z-index: 2; color: var(--hint); font-size: 11px; pointer-events: none; text-align: right; }
     .right { display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto; padding-right: 2px; }
+    /* Cards must keep their natural height: .card has overflow:hidden, which
+       would otherwise let flex shrink each card below its content and clip
+       the metrics once the column exceeds the viewport. The column scrolls. */
+    .right > .card { flex: 0 0 auto; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
     .grid.wide { grid-template-columns: 1fr; }
     .metric { background: var(--panel-sunken); border-radius: 8px; padding: 11px; min-width: 0; }
@@ -274,7 +278,7 @@
           <div><kbd>?</kbd> show or hide this panel</div>
         </div>
       </section>
-      <section class="card" style="min-height:0;flex:1">
+      <section class="card" style="flex:1 1 auto;min-height:220px">
         <div class="card-title">Events</div>
         <div id="log" class="log"><div class="muted">Waiting for RTDE telemetry…</div></div>
       </section>
