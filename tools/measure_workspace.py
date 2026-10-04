@@ -87,8 +87,8 @@ def main() -> int:
             if xyz is not None:
                 last = xyz
                 samples += 1
-                lows = [b if a is None else min(a, b) for a, b in zip(lows, xyz)]
-                highs = [b if a is None else max(a, b) for a, b in zip(highs, xyz)]
+                lows = [b if a is None else min(a, b) for a, b in zip(lows, xyz, strict=True)]
+                highs = [b if a is None else max(a, b) for a, b in zip(highs, xyz, strict=True)]
                 print("\r" + ", ".join(
                     f"{AXES[i]} {fmt(xyz[i])}  min {fmt(lows[i])}  max {fmt(highs[i])}"
                     for i in range(3)
@@ -114,7 +114,7 @@ def main() -> int:
     values = [lows[0], highs[0], lows[1], highs[1], lows[2], highs[2]]
     print(f"\n{samples} samples over {time.monotonic() - started:.0f}s."
           " Paste into UR10_PythonCamCode/safety_config.py:\n")
-    for name, value in zip(names, values):
+    for name, value in zip(names, values, strict=True):
         print(f"REAL_WORKSPACE_{name}: Optional[float] = {value:.3f}")
     print(f"\n# safe origin suggestion (park the TCP at home first; last seen below)\n"
           f"REAL_SAFE_ORIGIN = ({last[0]:.3f}, {last[1]:.3f}, {last[2]:.3f})")
