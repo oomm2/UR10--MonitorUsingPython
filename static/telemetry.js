@@ -42,7 +42,7 @@ export function validateState(state) {
     || !isFiniteOrNull(state.robot_mode) || !isFiniteOrNull(state.safety_mode)
     || !isFiniteOrNull(state.speed_scaling)
     || !isVector6(state.actual_q) || !isVector6(state.actual_TCP_pose)
-    || !isVector6(state.actual_TCP_speed) || !isVector6(state.actual_joint_current)
+    || !isVector6(state.actual_TCP_speed) || !isVector6(state.actual_current)
     || !isVector6(state.joint_temperatures)) {
     throw new MonitorRequestError('response', 'Monitor returned an invalid state object');
   }

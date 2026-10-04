@@ -328,7 +328,7 @@ function updateLoad(state) {
   const speed = tcpSpeedMagnitudes(state?.actual_TCP_speed);
   $('#tcp-speed').textContent = speed
     ? `${speed.linear.toFixed(3)} / ${speed.angular.toFixed(3)} m/s · rad/s` : '—';
-  const current = state?.actual_joint_current;
+  const current = state?.actual_current;
   $('#joint-current').textContent = Array.isArray(current)
     ? current.map((value) => value.toFixed(2)).join(', ') : '—';
   const temperature = state?.joint_temperatures;
@@ -348,7 +348,7 @@ function updateCharts(state, live) {
   jointHistory.push(state.actual_q.slice());
   const speed = tcpSpeedMagnitudes(state.actual_TCP_speed);
   if (speed) speedHistory.push(speed.linear);
-  if (isVector6(state.actual_joint_current)) currentHistory.push([...state.actual_joint_current]);
+  if (isVector6(state.actual_current)) currentHistory.push([...state.actual_current]);
   drawJointChart();
   drawLoadChart();
 }

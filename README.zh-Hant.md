@@ -96,7 +96,7 @@ node --test "tests/js/*.test.mjs"
 | `actual_q` | 六個實際關節角度 |
 | `actual_TCP_pose` | TCP 位置與姿態 |
 | `actual_TCP_speed` | TCP 速度；會另外計算線速度與角速度大小 |
-| `actual_joint_current` | 每個關節的電流（安培） |
+| `actual_current` | 每個關節的電流（安培） |
 | `joint_temperatures` | 每個關節的溫度（°C）；儀表板在 60 °C 時警示、70 °C 時標記為危險 |
 | `robot_mode` | 以依狀態變化的顏色顯示 |
 | `safety_mode` | 以依嚴重程度變化的顏色顯示 |

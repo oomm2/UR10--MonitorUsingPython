@@ -44,7 +44,7 @@ def recording_row(snapshot: dict[str, Any], wall_time: float) -> list[Any]:
     joints = snapshot.get("actual_q") or [None] * 6
     pose = snapshot.get("actual_TCP_pose") or [None] * 6
     speed = snapshot.get("actual_TCP_speed") or [None] * 6
-    current = snapshot.get("actual_joint_current") or [None] * 6
+    current = snapshot.get("actual_current") or [None] * 6
     temperature = snapshot.get("joint_temperatures") or [None] * 6
     linear = math.sqrt(sum(float(value) ** 2 for value in speed[:3] if isinstance(value, (int, float))))
     angular = math.sqrt(sum(float(value) ** 2 for value in speed[3:6] if isinstance(value, (int, float))))
