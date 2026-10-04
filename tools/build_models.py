@@ -16,7 +16,7 @@ directory stays self-contained and the file server needs no special cases.
 
 Adding another arm back: add its ``urXY`` -> ``URXY`` entry to ``MODELS`` below,
 add the name to the allowed set in ``monitor_config._validate_config``, and
-re-run this script. This export includes only UR10 inputs; obtain and license-review additional models separately.
+re-run this script. The vendored description already ships every model.
 """
 from __future__ import annotations
 
@@ -132,11 +132,38 @@ def read_joint_limits(model_dir: Path) -> dict[str, dict[str, float]]:
     return limits
 
 
-def read_visual_offsets(model_dir: Path) -> dict[str, str]:
-    """Return per-part visual origin xyz strings."""
+def read_physical_offsets(model_dir: Path) -> dict[str, float]:
+    """Read the ``offsets:`` block from physical_parameters.yaml."""
+    path = model_dir / "physical_parameters.yaml"
+    text = path.read_text(encoding="utf-8") if path.is_file() else ""
+    offsets: dict[str, float] = {}
+    in_section = False
+    for raw in text.splitlines():
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped == "offsets:":
+            in_section = True
+        elif not raw.startswith(" "):
+            in_section = False
+        elif in_section and ":" in stripped and not stripped.endswith(":"):
+            key, value = stripped.split(":", 1)
+            value = value.split("#", 1)[0].strip()
+            with contextlib.suppress(ValueError):
+                offsets[key.strip()] = float(value)
+    return offsets
+
+
+def read_mesh_visual_offsets(model_dir: Path) -> dict[str, dict[str, str]]:
+    """Read per-mesh visual offsets from visual_parameters.yaml.
+
+    Returns ``{part: {key: value}}`` keyed by the yaml part names (``wrist_1``
+    etc.) with the ``visual_offset`` scalars and any full ``visual_offset_xyz``
+    vector the vendored description ships.
+    """
     path = model_dir / "visual_parameters.yaml"
     text = path.read_text(encoding="utf-8") if path.is_file() else ""
-    offsets: dict[str, str] = {}
+    parts: dict[str, dict[str, str]] = {}
     current: str | None = None
     for raw in text.splitlines():
         stripped = raw.strip()
@@ -144,10 +171,36 @@ def read_visual_offsets(model_dir: Path) -> dict[str, str]:
             continue
         if raw.startswith("  ") and not raw.startswith("    ") and stripped.endswith(":"):
             current = stripped[:-1]
+            parts[current] = {}
             continue
-        if current and stripped.startswith("visual_offset_xyz:"):
-            offsets[current] = stripped.split(":", 1)[1].strip().strip('"')
-    return offsets
+        if current and raw.startswith("    ") and ":" in stripped:
+            key, value = stripped.split(":", 1)
+            key = key.strip()
+            if key in {"visual_offset", "visual_offset_xyz"}:
+                parts[current][key] = value.split("#", 1)[0].strip().strip('"')
+    return parts
+
+
+# ur_macro.xacro offsets each visual mesh so the CAD geometry lines up with the
+# (calibrated) kinematics frames: the upper_arm and forearm meshes carry the
+# shoulder/elbow lateral offsets from physical_parameters.yaml, the wrist meshes
+# carry their own visual_offset scalar, and wrist_3 may override it with a full
+# visual_offset_xyz vector. Dropping these is what makes the twin look exploded.
+MESH_PART_TO_YAML = {"wrist1": "wrist_1", "wrist2": "wrist_2", "wrist3": "wrist_3"}
+
+
+def visual_origin_xyz(mesh: str, mesh_offsets: dict[str, dict[str, str]],
+                      physical: dict[str, float]) -> str:
+    part = mesh_offsets.get(MESH_PART_TO_YAML.get(mesh, mesh), {})
+    if mesh == "upperarm":
+        return f"0 0 {physical.get('shoulder_offset', 0.0)}"
+    if mesh == "forearm":
+        return f"0 0 {physical.get('elbow_offset', 0.0)}"
+    if "visual_offset_xyz" in part:
+        return part["visual_offset_xyz"]
+    if "visual_offset" in part:
+        return f"0 0 {part['visual_offset']}"
+    return "0 0 0"
 
 
 def build_urdf(model: str) -> str:
@@ -155,13 +208,14 @@ def build_urdf(model: str) -> str:
     model_dir = CONFIG_DIR / folder
     kinematics = read_kinematics(model_dir)
     limits = read_joint_limits(model_dir)
-    offsets = read_visual_offsets(model_dir)
+    mesh_offsets = read_mesh_visual_offsets(model_dir)
+    physical = read_physical_offsets(model_dir)
 
     lines: list[str] = ['<?xml version="1.0"?>', f'<robot name="{folder}">', '  <link name="base_link"/>']
     for _, _, child, mesh, _ in JOINT_CHAIN[1:]:
         lines.append(f'  <link name="{child}">')
         lines.append("    <visual>")
-        xyz = offsets.get(mesh, "0 0 0")
+        xyz = visual_origin_xyz(mesh, mesh_offsets, physical)
         lines.append(f'      <origin xyz="{xyz}" rpy="{VISUAL_ROTATION[mesh]}"/>')
         lines.append(f'      <geometry><mesh filename="meshes/{folder}/{mesh}.dae"/></geometry>')
         lines.append("    </visual>")
