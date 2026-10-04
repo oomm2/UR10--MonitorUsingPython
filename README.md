@@ -77,7 +77,7 @@ Every field below is **output-only**. No input register, URScript call, or motio
 | `actual_q` | Six actual joint angles |
 | `actual_TCP_pose` | TCP position and orientation |
 | `actual_TCP_speed` | TCP velocity; linear and angular magnitudes are derived |
-| `actual_joint_current` | Per-joint current in amps |
+| `actual_current` | Per-joint current in amps |
 | `joint_temperatures` | Per-joint temperature in °C; the dashboard warns at 60 °C and flags at 70 °C |
 | `robot_mode` | Shown with a status-dependent colour |
 | `safety_mode` | Shown with a severity-dependent colour |

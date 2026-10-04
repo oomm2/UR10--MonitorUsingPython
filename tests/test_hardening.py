@@ -166,7 +166,7 @@ class RecordingSessionTests(unittest.TestCase):
             "actual_q": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
             "actual_TCP_pose": [0.1, 0.2, 0.3, 0.0, 0.0, 1.57],
             "actual_TCP_speed": [0.03, 0.04, 0.0, 0.0, 0.0, 0.0],
-            "actual_joint_current": [1.0] * 6,
+            "actual_current": [1.0] * 6,
             "joint_temperatures": [40.0] * 6,
             "robot_mode": 7,
             "safety_mode": 1,
@@ -460,7 +460,7 @@ class ThrottledHttpTests(unittest.TestCase):
         server._get_recorder().write({
             "connected": True, "timestamp": 1.0,
             "actual_q": [0.0] * 6, "actual_TCP_pose": [0.0] * 6,
-            "actual_TCP_speed": [0.0] * 6, "actual_joint_current": [0.0] * 6,
+            "actual_TCP_speed": [0.0] * 6, "actual_current": [0.0] * 6,
             "joint_temperatures": [0.0] * 6, "robot_mode": 7, "safety_mode": 1,
             "speed_scaling": 1.0, "actual_digital_input_bits": 0, "actual_digital_output_bits": 0,
         })

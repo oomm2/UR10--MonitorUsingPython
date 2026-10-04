@@ -10,31 +10,31 @@
   </link>
   <link name="upper_arm_link">
     <visual>
-      <origin xyz="0 0 0" rpy="1.570796327 0 -1.570796327"/>
+      <origin xyz="0 0 0.220941" rpy="1.570796327 0 -1.570796327"/>
       <geometry><mesh filename="meshes/ur10/upperarm.dae"/></geometry>
     </visual>
   </link>
   <link name="forearm_link">
     <visual>
-      <origin xyz="0 0 0" rpy="1.570796327 0 -1.570796327"/>
+      <origin xyz="0 0 0.049042" rpy="1.570796327 0 -1.570796327"/>
       <geometry><mesh filename="meshes/ur10/forearm.dae"/></geometry>
     </visual>
   </link>
   <link name="wrist_1_link">
     <visual>
-      <origin xyz="0 0 0" rpy="1.570796327 0 0"/>
+      <origin xyz="0 0 -0.1149" rpy="1.570796327 0 0"/>
       <geometry><mesh filename="meshes/ur10/wrist1.dae"/></geometry>
     </visual>
   </link>
   <link name="wrist_2_link">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.1158" rpy="0 0 0"/>
       <geometry><mesh filename="meshes/ur10/wrist2.dae"/></geometry>
     </visual>
   </link>
   <link name="wrist_3_link">
     <visual>
-      <origin xyz="0 0 0" rpy="1.570796327 0 0"/>
+      <origin xyz="0 0.001 -0.0922" rpy="1.570796327 0 0"/>
       <geometry><mesh filename="meshes/ur10/wrist3.dae"/></geometry>
     </visual>
   </link>

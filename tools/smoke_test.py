@@ -158,7 +158,7 @@ def main() -> int:
             status, _, body = request("GET", "/api/state")
             state = json.loads(body)
             assert status == 200, status
-            for key in ("actual_TCP_speed", "actual_joint_current", "joint_temperatures"):
+            for key in ("actual_TCP_speed", "actual_current", "joint_temperatures"):
                 assert key in state, f"missing {key} in /api/state"
                 assert len(state[key]) == 6, f"{key} is not a 6-vector"
             for key in ("latency", "trajectory", "subscribers"):

@@ -31,7 +31,7 @@ STATE_DEFAULTS: dict[str, Any] = {
     "actual_q": [0.0] * 6,
     "actual_TCP_pose": [0.0] * 6,
     "actual_TCP_speed": [0.0] * 6,
-    "actual_joint_current": [0.0] * 6,
+    "actual_current": [0.0] * 6,
     "joint_temperatures": [0.0] * 6,
     "robot_mode": None,
     "safety_mode": None,

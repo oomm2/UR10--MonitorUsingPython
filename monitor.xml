@@ -6,7 +6,7 @@
     <field name="actual_q" type="VECTOR6D" />
     <field name="actual_TCP_pose" type="VECTOR6D" />
     <field name="actual_TCP_speed" type="VECTOR6D" />
-    <field name="actual_joint_current" type="VECTOR6D" />
+    <field name="actual_current" type="VECTOR6D" />
     <field name="joint_temperatures" type="VECTOR6D" />
     <field name="robot_mode" type="INT32" />
     <field name="safety_mode" type="INT32" />
